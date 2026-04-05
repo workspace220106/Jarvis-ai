@@ -1,0 +1,13 @@
+﻿architect: true
+model: openai/deepseek-write
+openai-api-base: http://localhost:4000/v1
+openai-api-key: local-dev-key
+editor-model: openai/qwen-review
+map-tokens: 2048
+cache-prompts: true
+stream: true
+auto-commits: true
+gitignore: true
+editor: code --wait
+pretty: true
+show-diffs: true

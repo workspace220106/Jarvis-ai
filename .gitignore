@@ -1,0 +1,7 @@
+﻿env/
+aider-env/
+webui-env/
+.webui_secret_key
+*.env
+__pycache__/
+*.pyc

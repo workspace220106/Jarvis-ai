@@ -1,0 +1,44 @@
+﻿{
+  "models": [
+    {
+      "title": "DeepSeek — Write",
+      "provider": "openai",
+      "model": "deepseek-write",
+      "apiBase": "http://localhost:4000/v1",
+      "apiKey": "local-dev-key",
+      "contextLength": 8192,
+      "completionOptions": { "temperature": 0.2, "maxTokens": 2048 }
+    },
+    {
+      "title": "Qwen — Review",
+      "provider": "openai",
+      "model": "qwen-review",
+      "apiBase": "http://localhost:4000/v1",
+      "apiKey": "local-dev-key",
+      "contextLength": 8192,
+      "completionOptions": { "temperature": 0.1, "maxTokens": 2048 }
+    }
+  ],
+  "tabAutocompleteModel": {
+    "title": "DeepSeek Autocomplete",
+    "provider": "openai",
+    "model": "deepseek-write",
+    "apiBase": "http://localhost:4000/v1",
+    "apiKey": "local-dev-key"
+  },
+  "slashCommands": [
+    { "name": "write",  "description": "Write code with DeepSeek", "step": "EditHighlightedCodeStep" },
+    { "name": "review", "description": "Review code with Qwen",    "step": "CommentCodeStep" },
+    { "name": "cmd",    "description": "Generate shell command",    "step": "GenerateShellCommandStep" }
+  ],
+  "contextProviders": [
+    { "name": "code" }, { "name": "docs" }, { "name": "diff" },
+    { "name": "terminal" }, { "name": "problems" },
+    { "name": "folder" }, { "name": "codebase" }
+  ],
+  "embeddingsProvider": {
+    "provider": "ollama",
+    "model": "nomic-embed-text",
+    "apiBase": "http://localhost:11434"
+  }
+}

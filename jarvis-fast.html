@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jarvis AI | Command Center</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#03060f;
+  --bg2:rgba(8,14,28,0.85);
+  --bg3:rgba(12,20,40,0.7);
+  --glass:rgba(10,18,35,0.6);
+  --border:rgba(59,130,246,0.12);
+  --border2:rgba(59,130,246,0.28);
+  --text:#c8d8f0;
+  --muted:#4a6080;
+  --blue:#3b82f6;
+  --blue2:#60a5fa;
+  --purple:#a855f7;
+  --teal:#14b8a6;
+  --green:#22c55e;
+  --amber:#f59e0b;
+  --red:#ef4444;
+  --mono:'Space Mono',monospace;
+  --sans:'Outfit',sans-serif;
+}
+
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans)}
+
+/* ── ANIMATED BACKGROUND ── */
+.bg-scene{
+  position:fixed;inset:0;z-index:0;
+  overflow:hidden;
+  background:radial-gradient(ellipse 80% 60% at 50% 40%, rgba(15,30,70,0.8) 0%, var(--bg) 70%);
+}
+
+/* Grid floor */
+.grid-floor{
+  position:absolute;
+  bottom:-10%;left:-20%;right:-20%;
+  height:70%;
+  background:
+    linear-gradient(rgba(59,130,246,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,130,246,0.06) 1px, transparent 1px);
+  background-size:60px 60px;
+  transform:perspective(600px) rotateX(70deg);
+  transform-origin:bottom center;
+}
+
+/* Scan lines overlay */
+.scanlines{
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+  pointer-events:none;
+}
+
+/* CSS 3D Core Orb */
+.orb-wrap{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-55%);
+  width:260px;height:260px;
+  animation:orbFloat 6s ease-in-out infinite;
+}
+
+@keyframes orbFloat{0%,100%{transform:translate(-50%,-55%) translateY(0)}50%{transform:translate(-50%,-55%) translateY(-18px)}}
+
+.orb{
+  width:100%;height:100%;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 35% 35%, rgba(96,165,250,0.25) 0%, transparent 55%),
+    radial-gradient(circle at 65% 65%, rgba(168,85,247,0.15) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(20,184,166,0.1) 0%, transparent 70%),
+    radial-gradient(circle at 50% 50%, rgba(15,30,80,0.9) 30%, rgba(5,10,30,0.95) 100%);
+  box-shadow:
+    0 0 60px rgba(59,130,246,0.4),
+    0 0 120px rgba(59,130,246,0.2),
+    0 0 200px rgba(168,85,247,0.1),
+    inset 0 0 40px rgba(59,130,246,0.15);
+  animation:orbPulse 4s ease-in-out infinite;
+  position:relative;
+}
+
+@keyframes orbPulse{
+  0%,100%{box-shadow:0 0 60px rgba(59,130,246,0.4),0 0 120px rgba(59,130,246,0.2),0 0 200px rgba(168,85,247,0.1),inset 0 0 40px rgba(59,130,246,0.15)}
+  50%{box-shadow:0 0 80px rgba(59,130,246,0.6),0 0 160px rgba(59,130,246,0.3),0 0 250px rgba(168,85,247,0.15),inset 0 0 60px rgba(59,130,246,0.25)}
+}
+
+/* Ring 1 */
+.ring{
+  position:absolute;
+  border-radius:50%;
+  border:1px solid rgba(59,130,246,0.3);
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+}
+
+.ring1{width:310px;height:310px;animation:spin 8s linear infinite;border-color:rgba(59,130,246,0.2);box-shadow:0 0 15px rgba(59,130,246,0.1)}
+.ring2{width:370px;height:140px;animation:spin 14s linear infinite reverse;border-color:rgba(168,85,247,0.2);transform:translate(-50%,-50%) rotateX(70deg)}
+.ring3{width:420px;height:420px;animation:spin 20s linear infinite;border-color:rgba(20,184,166,0.1)}
+
+@keyframes spin{from{transform:translate(-50%,-50%) rotateZ(0deg) rotateX(var(--rx,0))}to{transform:translate(-50%,-50%) rotateZ(360deg) rotateX(var(--rx,0))}}
+
+/* Orbiting nodes */
+.orbit-system{position:absolute;inset:0}
+
+.orbit-node{
+  position:absolute;
+  top:50%;left:50%;
+  width:14px;height:14px;
+  margin:-7px;
+  border-radius:2px;
+  transform-origin:center;
+}
+
+.node-dot{
+  width:14px;height:14px;
+  border-radius:2px;
+  transform:rotate(45deg);
+  position:relative;
+}
+
+.node-dot::after{
+  content:'';
+  position:absolute;inset:-4px;
+  border-radius:4px;
+  opacity:0.4;
+  filter:blur(6px);
+  background:inherit;
+}
+
+.n1{animation:orbit1 6s linear infinite}
+.n2{animation:orbit2 9s linear infinite}
+.n3{animation:orbit3 12s linear infinite}
+
+@keyframes orbit1{
+  0%  {transform:translateX(-120px) translateY(-20px)}
+  25% {transform:translateX(20px) translateY(-120px)}
+  50% {transform:translateX(120px) translateY(20px)}
+  75% {transform:translateX(-20px) translateY(120px)}
+  100%{transform:translateX(-120px) translateY(-20px)}
+}
+@keyframes orbit2{
+  0%  {transform:translateX(140px) translateY(40px)}
+  33% {transform:translateX(-40px) translateY(-140px)}
+  66% {transform:translateX(-100px) translateY(80px)}
+  100%{transform:translateX(140px) translateY(40px)}
+}
+@keyframes orbit3{
+  0%  {transform:translateX(-30px) translateY(160px)}
+  50% {transform:translateX(30px) translateY(-160px)}
+  100%{transform:translateX(-30px) translateY(160px)}
+}
+
+/* Stars */
+.stars{position:absolute;inset:0;overflow:hidden}
+.star{
+  position:absolute;
+  border-radius:50%;
+  background:#60a5fa;
+  animation:twinkle var(--d,3s) ease-in-out infinite;
+  animation-delay:var(--delay,0s);
+}
+@keyframes twinkle{0%,100%{opacity:0.1}50%{opacity:0.8}}
+
+/* ── UI LAYER ── */
+.ui{position:fixed;inset:0;z-index:10;display:flex;gap:12px;padding:12px;pointer-events:none}
+
+/* Glass mixin */
+.glass{
+  background:var(--glass);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--border);
+  border-radius:16px;
+}
+
+.pea{pointer-events:auto}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:280px;flex-shrink:0;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+
+.sidebar-head{
+  padding:18px 18px 14px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+  flex-shrink:0;
+}
+
+.logo-orb{
+  width:36px;height:36px;
+  border-radius:10px;
+  background:radial-gradient(circle at 40% 40%, rgba(96,165,250,0.4), rgba(30,60,140,0.8));
+  border:1px solid var(--border2);
+  box-shadow:0 0 16px rgba(59,130,246,0.35);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-family:var(--mono);font-weight:700;color:var(--blue2);
+}
+
+.logo-text h1{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.12em;color:#fff}
+.logo-text p{font-family:var(--mono);font-size:9px;letter-spacing:.08em;margin-top:2px}
+
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{
+  flex:1;padding:9px 0;
+  font-family:var(--mono);font-size:9px;letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--muted);cursor:pointer;
+  border:none;background:transparent;
+  transition:all .2s;
+}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--blue2);border-bottom:2px solid var(--blue);margin-bottom:-1px}
+
+.panel{flex:1;overflow-y:auto;padding:14px}
+.panel.hidden{display:none}
+
+/* Scrollbar */
+.panel::-webkit-scrollbar{width:3px}
+.panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* Section label */
+.sec{
+  font-family:var(--mono);font-size:9px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted);
+  margin-bottom:10px;margin-top:16px;
+  display:flex;align-items:center;gap:6px;
+}
+.sec:first-child{margin-top:0}
+
+/* Service rows */
+.svc{
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);
+  border-radius:10px;padding:10px 12px;
+  margin-bottom:8px;cursor:pointer;
+  transition:all .2s;
+}
+.svc:hover{background:rgba(255,255,255,0.06);border-color:var(--border2)}
+.svc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.svc-name{font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px}
+.svc-port{font-family:var(--mono);font-size:9px;color:var(--muted)}
+.svc-info{font-family:var(--mono);font-size:9px;color:var(--muted)}
+
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:all .3s}
+.dot.online{background:var(--green);box-shadow:0 0 8px var(--green)}
+.dot.offline{background:var(--red);box-shadow:0 0 8px var(--red)}
+.dot.checking{background:var(--amber);animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Model chips */
+.model-chip{
+  background:rgba(255,255,255,0.03);border:1px solid var(--border);
+  border-radius:10px;padding:10px 12px;margin-bottom:8px;
+  cursor:pointer;transition:all .2s;
+}
+.model-chip:hover{background:rgba(255,255,255,0.06)}
+.model-name{font-size:12px;font-weight:500}
+.model-meta{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px}
+
+/* Quick prompts */
+.qp{
+  width:100%;text-align:left;
+  padding:7px 10px;border-radius:8px;
+  background:rgba(255,255,255,0.03);border:1px solid var(--border);
+  font-family:var(--mono);font-size:10px;color:var(--muted);
+  cursor:pointer;transition:all .2s;margin-bottom:6px;
+  display:block;
+}
+.qp:hover{background:rgba(59,130,246,0.08);border-color:var(--border2);color:var(--text)}
+
+/* Select */
+.sel{
+  width:100%;background:rgba(0,0,0,0.4);
+  border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-family:var(--mono);font-size:11px;
+  padding:8px 10px;outline:none;cursor:pointer;
+}
+.sel:focus{border-color:var(--border2)}
+
+/* Toggle */
+.tog-wrap{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.tog-label{font-size:11px;color:var(--muted)}
+.tog{position:relative;width:36px;height:20px;cursor:pointer}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.tog-track{position:absolute;inset:0;border-radius:10px;background:rgba(255,255,255,0.1);transition:.2s}
+.tog input:checked+.tog-track{background:var(--blue)}
+.tog-thumb{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.2s}
+.tog input:checked~.tog-thumb{transform:translateX(16px)}
+
+/* Range */
+.range-wrap{margin-bottom:12px}
+.range-head{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:5px}
+input[type=range]{width:100%;accent-color:var(--blue);height:4px}
+
+/* Log lines */
+.log-line{font-family:var(--mono);font-size:10px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03);display:flex;gap:8px;line-height:1.5}
+.log-t{color:var(--muted);min-width:55px}
+.log-l{min-width:42px;font-weight:700}
+.log-m{color:#7090b0;flex:1;word-break:break-all}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;gap:12px}
+
+/* Header */
+.hdr{
+  flex-shrink:0;padding:12px 18px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+
+.hdr-left{display:flex;align-items:center;gap:12px}
+.hdr-status{font-family:var(--mono);font-size:10px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.hdr-divider{width:1px;height:14px;background:var(--border)}
+.hdr-count{font-family:var(--mono);font-size:10px;color:var(--muted)}
+
+.hdr-right{display:flex;gap:8px}
+
+.btn{
+  padding:7px 16px;border-radius:9px;
+  font-size:11px;font-family:var(--sans);font-weight:500;
+  cursor:pointer;border:1px solid var(--border);
+  background:rgba(255,255,255,0.04);color:var(--text);
+  transition:all .2s;display:flex;align-items:center;gap:6px;
+}
+.btn:hover{background:rgba(255,255,255,0.08);border-color:var(--border2)}
+.btn-blue{background:rgba(59,130,246,0.2);border-color:rgba(59,130,246,0.4);color:var(--blue2)}
+.btn-blue:hover{background:rgba(59,130,246,0.35)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Chat */
+.chat-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-h-0}
+
+.messages{
+  flex:1;overflow-y:auto;
+  padding:20px;display:flex;flex-direction:column;gap:14px;
+}
+.messages::-webkit-scrollbar{width:3px}
+.messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* Message */
+.msg{display:flex;gap:10px;animation:msgIn .3s ease forwards}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.msg.user{flex-direction:row-reverse}
+.av{
+  width:32px;height:32px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;font-family:var(--mono);
+  flex-shrink:0;
+}
+.av.ai{background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.25);color:var(--blue2)}
+.av.user{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);color:var(--muted)}
+
+.bubble{
+  padding:10px 14px;border-radius:12px;
+  max-width:75%;font-size:13px;line-height:1.65;
+}
+.bubble.ai{
+  background:rgba(8,18,40,0.7);
+  border:1px solid var(--border);
+  color:var(--text);
+}
+.bubble.user{
+  background:rgba(59,130,246,0.12);
+  border:1px solid rgba(59,130,246,0.22);
+  color:var(--text);
+  font-family:var(--mono);font-size:12px;
+}
+
+.bubble-tag{font-family:var(--mono);font-size:9px;letter-spacing:.08em;margin-bottom:6px;opacity:.6}
+
+.bubble pre{
+  background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.08);
+  border-radius:8px;padding:12px;margin-top:8px;
+  overflow-x:auto;font-size:11px;color:#34d399;line-height:1.7;
+  font-family:var(--mono);
+}
+.bubble code{
+  background:rgba(0,0,0,0.4);padding:1px 5px;
+  border-radius:3px;font-size:11px;color:#93c5fd;
+  font-family:var(--mono);
+}
+
+/* Typing dots */
+.typing-dots span{
+  display:inline-block;width:5px;height:5px;border-radius:50%;
+  background:var(--blue2);margin:0 2px;
+  animation:tdot 1.2s ease-in-out infinite;
+}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes tdot{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-6px);opacity:1}}
+
+/* Input */
+.input-wrap{
+  flex-shrink:0;padding:12px;
+  border-top:1px solid var(--border);
+}
+.input-inner{
+  display:flex;align-items:flex-end;gap:8px;
+  background:rgba(0,0,0,0.4);border:1px solid var(--border);
+  border-radius:12px;padding:8px 8px 8px 14px;
+  transition:border-color .2s;
+}
+.input-inner:focus-within{border-color:rgba(59,130,246,0.4)}
+
+#prompt-input{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--text);font-family:var(--mono);font-size:12px;
+  resize:none;line-height:1.5;min-height:38px;max-height:140px;
+  padding:6px 0;
+}
+#prompt-input::placeholder{color:var(--muted)}
+
+.send-btn{
+  width:36px;height:36px;border-radius:9px;flex-shrink:0;
+  background:rgba(59,130,246,0.7);border:none;color:#fff;
+  cursor:pointer;transition:all .2s;font-size:13px;
+  display:flex;align-items:center;justify-content:center;
+}
+.send-btn:hover{background:var(--blue)}
+.send-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.stop-btn{
+  width:36px;height:36px;border-radius:9px;flex-shrink:0;
+  background:rgba(239,68,68,0.6);border:none;color:#fff;
+  cursor:pointer;transition:all .2s;font-size:11px;
+  display:flex;align-items:center;justify-content:center;
+}
+
+.input-footer{
+  display:flex;justify-content:space-between;
+  font-family:var(--mono);font-size:9px;color:var(--muted);
+  padding:5px 4px 0;
+}
+
+/* Pulse orb on response */
+@keyframes orbSurge{0%{box-shadow:0 0 60px rgba(59,130,246,0.4),0 0 120px rgba(59,130,246,0.2)}
+50%{box-shadow:0 0 100px rgba(59,130,246,0.9),0 0 200px rgba(59,130,246,0.5),0 0 300px rgba(168,85,247,0.3)}
+100%{box-shadow:0 0 60px rgba(59,130,246,0.4),0 0 120px rgba(59,130,246,0.2)}}
+.orb.surge{animation:orbSurge 0.8s ease-out forwards,orbPulse 4s ease-in-out 0.8s infinite}
+</style>
+</head>
+<body>
+
+<!-- ═══ BACKGROUND SCENE ═══ -->
+<div class="bg-scene">
+  <div class="stars" id="stars"></div>
+  <div class="grid-floor"></div>
+  <div class="scanlines"></div>
+
+  <div class="orb-wrap">
+    <!-- Rings -->
+    <div class="ring ring1"></div>
+    <div class="ring ring2"></div>
+    <div class="ring ring3"></div>
+    <!-- Core -->
+    <div class="orb" id="orb"></div>
+    <!-- Orbiting nodes -->
+    <div class="orbit-system">
+      <div class="orbit-node n1">
+        <div class="node-dot" style="background:#22c55e"></div>
+      </div>
+      <div class="orbit-node n2">
+        <div class="node-dot" style="background:#a855f7"></div>
+      </div>
+      <div class="orbit-node n3">
+        <div class="node-dot" style="background:#3b82f6"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ UI ═══ -->
+<div class="ui">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar glass pea">
+
+    <div class="sidebar-head">
+      <div class="logo-orb">J</div>
+      <div class="logo-text">
+        <h1>JARVIS<span style="color:var(--blue)">.</span>AI</h1>
+        <p id="sys-status" style="color:var(--amber)">● CONNECTING...</p>
+      </div>
+    </div>
+
+    <div class="tabs pea">
+      <button class="tab on pea" onclick="tab('chat')" id="t-chat">CHAT</button>
+      <button class="tab pea" onclick="tab('stack')" id="t-stack">STACK</button>
+      <button class="tab pea" onclick="tab('logs')" id="t-logs">LOGS</button>
+    </div>
+
+    <!-- CHAT PANEL -->
+    <div class="panel pea" id="p-chat">
+      <div class="sec">▸ Active Model</div>
+      <select class="sel pea" id="model-sel" onchange="onModelChange()">
+        <option value="deepseek-write">⚡ DeepSeek — Write</option>
+        <option value="qwen-review">🔍 Qwen — Review</option>
+      </select>
+
+      <div style="margin-top:14px">
+        <div class="sec">▸ Parameters</div>
+        <div class="range-wrap">
+          <div class="range-head"><span>Max tokens</span><span id="tok-val" style="color:var(--blue2)">1024</span></div>
+          <input type="range" min="128" max="4096" step="128" value="1024" id="tok-range" oninput="document.getElementById('tok-val').textContent=this.value;updateFooter()">
+        </div>
+        <div class="tog-wrap">
+          <span class="tog-label">Stream tokens</span>
+          <label class="tog pea"><input type="checkbox" id="tog-stream" checked><div class="tog-track"></div><div class="tog-thumb"></div></label>
+        </div>
+        <div class="tog-wrap">
+          <span class="tog-label">Code mode</span>
+          <label class="tog pea"><input type="checkbox" id="tog-code"><div class="tog-track"></div><div class="tog-thumb"></div></label>
+        </div>
+      </div>
+
+      <div style="margin-top:4px">
+        <div class="sec">▸ Quick Commands</div>
+        <button class="qp pea" onclick="inject('/write ')" style="color:#22c55e">⚡ /write — generate code</button>
+        <button class="qp pea" onclick="inject('/review ')" style="color:#a855f7">🔍 /review — review code</button>
+        <button class="qp pea" onclick="inject('/debug ')" style="color:#ef4444">🐛 /debug — debug error</button>
+        <button class="qp pea" onclick="inject('/explain ')" style="color:#f59e0b">📖 /explain — explain code</button>
+        <button class="qp pea" onclick="inject('/refactor ')" style="color:#14b8a6">♻ /refactor — clean up</button>
+        <button class="qp pea" onclick="inject('/test ')" style="color:#60a5fa">🧪 /test — write tests</button>
+      </div>
+
+      <div style="margin-top:8px">
+        <button class="qp pea" onclick="clearChat()" style="color:var(--red);border-color:rgba(239,68,68,0.2)">
+          ✕ Clear conversation
+        </button>
+      </div>
+    </div>
+
+    <!-- STACK PANEL -->
+    <div class="panel hidden pea" id="p-stack">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="sec" style="margin:0">▸ Services</div>
+        <button class="btn pea" style="padding:4px 10px;font-size:10px" onclick="checkAll()">↺ refresh</button>
+      </div>
+      <div style="margin-top:10px">
+        <div class="svc" id="svc-ol">
+          <div class="svc-head">
+            <div class="svc-name"><div class="dot checking" id="d-ol"></div>Ollama Core</div>
+            <span class="svc-port">:11434</span>
+          </div>
+          <div class="svc-info" id="i-ol">Checking...</div>
+        </div>
+        <div class="svc" id="svc-lt">
+          <div class="svc-head">
+            <div class="svc-name"><div class="dot checking" id="d-lt"></div>LiteLLM Router</div>
+            <span class="svc-port">:4000</span>
+          </div>
+          <div class="svc-info" id="i-lt">Checking...</div>
+        </div>
+        <div class="svc" id="svc-oc">
+          <div class="svc-head">
+            <div class="svc-name"><div class="dot checking" id="d-oc"></div>OpenClaw Gateway</div>
+            <span class="svc-port">:18789</span>
+          </div>
+          <div class="svc-info" id="i-oc">Checking...</div>
+        </div>
+      </div>
+
+      <div class="sec" style="margin-top:18px">▸ Models</div>
+      <div class="model-chip">
+        <div class="model-name" style="color:#22c55e">deepseek-write</div>
+        <div class="model-meta">3.8 GB · Q4_K_M · code gen · temp 0.2</div>
+      </div>
+      <div class="model-chip">
+        <div class="model-name" style="color:#a855f7">qwen-review</div>
+        <div class="model-meta">4.7 GB · Q4_K_M · review · temp 0.1</div>
+      </div>
+      <div class="model-chip">
+        <div class="model-name" style="color:#3b82f6">nomic-embed-text</div>
+        <div class="model-meta">274 MB · embeddings · Continue @codebase</div>
+      </div>
+
+      <div class="sec" style="margin-top:18px">▸ RAM (16 GB Intel Arc)</div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;font-family:var(--mono)">MAX_LOADED_MODELS=1</div>
+      <div style="background:rgba(0,0,0,0.3);border-radius:6px;overflow:hidden;height:8px;margin-bottom:6px">
+        <div style="width:23.75%;height:100%;background:var(--blue);border-radius:6px"></div>
+      </div>
+      <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-bottom:10px">deepseek-write: 3.8 GB / 16 GB</div>
+      <div style="background:rgba(0,0,0,0.3);border-radius:6px;overflow:hidden;height:8px;margin-bottom:6px">
+        <div style="width:29.4%;height:100%;background:var(--purple);border-radius:6px"></div>
+      </div>
+      <div style="font-size:9px;color:var(--muted);font-family:var(--mono)">qwen-review: 4.7 GB / 16 GB</div>
+    </div>
+
+    <!-- LOGS PANEL -->
+    <div class="panel hidden pea" id="p-logs">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Live logs</div>
+        <button class="btn pea" style="padding:3px 8px;font-size:9px" onclick="clearLogs()">clear</button>
+      </div>
+      <div id="log-body"></div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main pea">
+
+    <!-- Header -->
+    <div class="hdr glass pea">
+      <div class="hdr-left">
+        <div class="hdr-status">
+          <div class="dot checking" id="hdr-dot"></div>
+          <span id="hdr-txt" style="font-size:10px">Connecting to stack...</span>
+        </div>
+        <div class="hdr-divider"></div>
+        <div class="hdr-count" id="req-ct">0 requests</div>
+      </div>
+      <div class="hdr-right">
+        <button class="btn pea" onclick="scanCodebase()">⌕ Scan Codebase</button>
+        <button class="btn btn-blue pea" onclick="initAgent()">⚡ Initialize Agent</button>
+        <button class="btn pea" onclick="checkAll()" style="padding:7px 10px">↺</button>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div class="chat-wrap glass pea">
+      <div class="messages" id="msgs"></div>
+
+      <div class="input-wrap">
+        <div class="input-inner">
+          <textarea id="prompt-input" placeholder="Send instructions to your local AI stack... (Enter to send · Shift+Enter newline)"
+            onkeydown="onKey(event)" oninput="resize(this)"></textarea>
+          <button class="stop-btn pea" id="stop-btn" style="display:none" onclick="stopStream()">■</button>
+          <button class="send-btn pea" id="send-btn" onclick="send()">▶</button>
+        </div>
+        <div class="input-footer">
+          <span id="ft-model">Model: deepseek-write · localhost:4000</span>
+          <span id="ft-tok">max 1024 tokens · stream on</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────
+const CFG = {
+  litellm: 'http://localhost:4000/v1',
+  key: 'local-dev-key',
+  ollama: 'http://localhost:11434',
+};
+
+// ── STARS ────────────────────────────────────────────
+(function(){
+  const s = document.getElementById('stars');
+  for(let i=0;i<120;i++){
+    const el = document.createElement('div');
+    const size = Math.random()*2+1;
+    el.className='star';
+    el.style.cssText=`
+      width:${size}px;height:${size}px;
+      top:${Math.random()*100}%;left:${Math.random()*100}%;
+      --d:${2+Math.random()*4}s;
+      --delay:${Math.random()*4}s;
+      opacity:${0.1+Math.random()*0.6};
+    `;
+    s.appendChild(el);
+  }
+})();
+
+// ── STATE ─────────────────────────────────────────────
+let history=[], reqCount=0, ctrl=null, streaming=false;
+
+// ── TABS ──────────────────────────────────────────────
+function tab(id){
+  ['chat','stack','logs'].forEach(t=>{
+    document.getElementById('p-'+t).classList.add('hidden');
+    document.getElementById('t-'+t).classList.remove('on');
+  });
+  document.getElementById('p-'+id).classList.remove('hidden');
+  document.getElementById('t-'+id).classList.add('on');
+  if(id==='stack') checkAll();
+}
+
+// ── INPUT ─────────────────────────────────────────────
+function resize(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,140)+'px';
+}
+
+function onKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}
+}
+
+function inject(cmd){
+  const el=document.getElementById('prompt-input');
+  el.value=cmd; el.focus();
+  tab('chat');
+}
+
+function updateFooter(){
+  const m=document.getElementById('model-sel').value;
+  const t=document.getElementById('tok-range').value;
+  const s=document.getElementById('tog-stream').checked;
+  document.getElementById('ft-model').textContent='Model: '+m+' · localhost:4000';
+  document.getElementById('ft-tok').textContent='max '+t+' tokens · stream '+(s?'on':'off');
+}
+
+function onModelChange(){
+  updateFooter();
+  log('INFO','[model] switched to '+document.getElementById('model-sel').value);
+}
+
+// ── MESSAGES ──────────────────────────────────────────
+function appendSys(html){
+  const c=document.getElementById('msgs');
+  const el=document.createElement('div');
+  el.className='msg';
+  el.innerHTML=`
+    <div class="av ai">J</div>
+    <div class="bubble ai">
+      <div class="bubble-tag" style="color:var(--blue2)">JARVIS.AI // SYSTEM</div>
+      <div>${html}</div>
+    </div>`;
+  c.appendChild(el);
+  c.scrollTop=99999;
+}
+
+function appendUser(txt){
+  const c=document.getElementById('msgs');
+  const el=document.createElement('div');
+  el.className='msg user';
+  el.innerHTML=`
+    <div class="av user">U</div>
+    <div class="bubble user">${esc(txt)}</div>`;
+  c.appendChild(el);
+  c.scrollTop=99999;
+}
+
+function appendAi(){
+  const c=document.getElementById('msgs');
+  const el=document.createElement('div');
+  el.className='msg';
+  const model=document.getElementById('model-sel').value;
+  el.innerHTML=`
+    <div class="av ai">AI</div>
+    <div class="bubble ai">
+      <div class="bubble-tag" style="color:#22c55e">${model} // LOCAL</div>
+      <div class="ai-text"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+    </div>`;
+  c.appendChild(el);
+  c.scrollTop=99999;
+  return el.querySelector('.ai-text');
+}
+
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function fmt(t){
+  t=t.replace(/```(\w*)\n?([\s\S]*?)```/g,(_,l,c)=>`<pre><code>${esc(c.trim())}</code></pre>`);
+  t=t.replace(/`([^`\n]+)`/g,'<code>$1</code>');
+  t=t.replace(/\*\*(.+?)\*\*/g,'<strong style="color:#fff">$1</strong>');
+  t=t.replace(/\n/g,'<br>');
+  return t;
+}
+
+function clearChat(){
+  history=[];
+  document.getElementById('msgs').innerHTML='';
+  appendSys('Conversation cleared. Ready for new session.');
+}
+
+// ── SEND ──────────────────────────────────────────────
+async function send(){
+  const input=document.getElementById('prompt-input');
+  const msg=input.value.trim();
+  if(!msg||streaming) return;
+
+  const model=document.getElementById('model-sel').value;
+  const maxTok=parseInt(document.getElementById('tok-range').value);
+  const useStream=document.getElementById('tog-stream').checked;
+  const codeMode=document.getElementById('tog-code').checked;
+
+  input.value=''; input.style.height='auto';
+
+  const sys=codeMode
+    ?'You are an expert code assistant. Always wrap code in triple backticks with the language tag. Be concise and practical.'
+    :'You are Jarvis, a local AI coding assistant running privately on the user\'s machine. Be helpful, concise, and technical.';
+
+  appendUser(msg);
+  history.push({role:'user',content:msg});
+
+  const textEl=appendAi();
+  setBusy(true);
+
+  reqCount++;
+  document.getElementById('req-ct').textContent=reqCount+' request'+(reqCount!==1?'s':'');
+  log('INFO',`[chat] → ${model} (${maxTok}tok stream=${useStream})`);
+
+  try{
+    ctrl=new AbortController();
+    if(useStream) await streamResp(model,sys,maxTok,textEl);
+    else await fetchResp(model,sys,maxTok,textEl);
+    pulseOrb();
+  }catch(e){
+    if(e.name==='AbortError'){
+      textEl.innerHTML+='<br><span style="color:var(--amber);font-size:11px">// stopped</span>';
+      log('WARN','[chat] stream stopped by user');
+    } else {
+      textEl.innerHTML=`<span style="color:var(--red)">⚠ Cannot connect to LiteLLM at <code>localhost:4000</code></span>
+        <br><span style="color:var(--muted);font-size:10px">Start it:<br>
+        <code>cd C:\\Users\\araji\\jarvis-ai</code><br>
+        <code>.\\litellm\\env\\Scripts\\litellm --config configs\\litellm_config.yaml --port 4000</code></span>`;
+      setOffline();
+      log('ERROR','[chat] '+e.message);
+    }
+  } finally {
+    setBusy(false);
+    document.getElementById('msgs').scrollTop=99999;
+  }
+}
+
+async function streamResp(model,sys,maxTok,el){
+  const res=await fetch(CFG.litellm+'/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+CFG.key},
+    signal:ctrl.signal,
+    body:JSON.stringify({model,messages:[{role:'system',content:sys},...history],max_tokens:maxTok,stream:true})
+  });
+  if(!res.ok) throw new Error('HTTP '+res.status);
+
+  const reader=res.body.getReader();
+  const dec=new TextDecoder();
+  let full='';
+  el.innerHTML='';
+
+  while(true){
+    const {done,value}=await reader.read();
+    if(done) break;
+    const chunk=dec.decode(value,{stream:true});
+    for(const line of chunk.split('\n')){
+      if(!line.startsWith('data: ')) continue;
+      const j=line.slice(6).trim();
+      if(j==='[DONE]') break;
+      try{
+        const d=JSON.parse(j);
+        const delta=d.choices?.[0]?.delta?.content||'';
+        full+=delta;
+        el.innerHTML=fmt(full)+'<span style="color:var(--blue2);animation:blink 1s infinite">▋</span>';
+        document.getElementById('msgs').scrollTop=99999;
+      }catch{}
+    }
+  }
+  el.innerHTML=fmt(full);
+  history.push({role:'assistant',content:full});
+  log('INFO',`[chat] ← ${model} done (${full.length}ch)`);
+}
+
+async function fetchResp(model,sys,maxTok,el){
+  const res=await fetch(CFG.litellm+'/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+CFG.key},
+    signal:ctrl.signal,
+    body:JSON.stringify({model,messages:[{role:'system',content:sys},...history],max_tokens:maxTok,stream:false})
+  });
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const d=await res.json();
+  const reply=d.choices[0].message.content;
+  el.innerHTML=fmt(reply);
+  history.push({role:'assistant',content:reply});
+  log('INFO',`[chat] ← ${model} OK (${reply.length}ch)`);
+}
+
+function stopStream(){ if(ctrl) ctrl.abort(); }
+
+function setBusy(b){
+  streaming=b;
+  document.getElementById('send-btn').disabled=b;
+  document.getElementById('stop-btn').style.display=b?'flex':'none';
+}
+
+// ── SERVICE CHECKS ─────────────────────────────────────
+async function checkAll(){
+  await Promise.all([chkOllama(),chkLiteLLM(),chkOpenClaw()]);
+}
+
+async function chkOllama(){
+  const dot=document.getElementById('d-ol');
+  const info=document.getElementById('i-ol');
+  dot.className='dot checking';
+  try{
+    const r=await fetch(CFG.ollama+'/api/tags',{signal:AbortSignal.timeout(3000)});
+    if(r.ok){
+      const d=await r.json();
+      const names=d.models?.map(m=>m.name.split(':')[0]).join(', ')||'none';
+      dot.className='dot online';
+      info.textContent='ONLINE — '+names;
+      info.style.color='var(--green)';
+    } else throw 0;
+  }catch{
+    dot.className='dot offline';
+    info.textContent='OFFLINE — run: ollama serve';
+    info.style.color='var(--red)';
+  }
+}
+
+async function chkLiteLLM(){
+  const dot=document.getElementById('d-lt');
+  const info=document.getElementById('i-lt');
+  dot.className='dot checking';
+  try{
+    const r=await fetch(CFG.litellm+'/models',{
+      headers:{'Authorization':'Bearer '+CFG.key},
+      signal:AbortSignal.timeout(3000)
+    });
+    if(r.ok){
+      const d=await r.json();
+      const names=d.data?.map(m=>m.id).join(', ')||'—';
+      dot.className='dot online';
+      info.textContent='ONLINE — '+names;
+      info.style.color='var(--purple)';
+      setOnline();
+    } else throw 0;
+  }catch{
+    dot.className='dot offline';
+    info.textContent='OFFLINE — start litellm router';
+    info.style.color='var(--red)';
+    setOffline();
+  }
+}
+
+async function chkOpenClaw(){
+  const dot=document.getElementById('d-oc');
+  const info=document.getElementById('i-oc');
+  dot.className='dot checking';
+  try{
+    await fetch('http://localhost:18791/',{signal:AbortSignal.timeout(2000),mode:'no-cors'});
+    dot.className='dot online';
+    info.textContent='ONLINE — gateway ws:18789';
+    info.style.color='var(--green)';
+  }catch{
+    dot.className='dot offline';
+    info.textContent='OFFLINE — run: openclaw gateway';
+    info.style.color='var(--red)';
+  }
+}
+
+function setOnline(){
+  const d=document.getElementById('hdr-dot');
+  d.className='dot online';
+  document.getElementById('hdr-txt').textContent='Stack online · LiteLLM + Ollama ready';
+  document.getElementById('sys-status').textContent='● SYSTEM ONLINE';
+  document.getElementById('sys-status').style.color='var(--green)';
+}
+
+function setOffline(){
+  const d=document.getElementById('hdr-dot');
+  d.className='dot offline';
+  document.getElementById('hdr-txt').textContent='LiteLLM offline — start the stack';
+  document.getElementById('sys-status').textContent='● PARTIAL ONLINE';
+  document.getElementById('sys-status').style.color='var(--amber)';
+}
+
+// ── ORB PULSE ─────────────────────────────────────────
+function pulseOrb(){
+  const o=document.getElementById('orb');
+  o.classList.add('surge');
+  setTimeout(()=>o.classList.remove('surge'),900);
+}
+
+// ── ACTION BUTTONS ─────────────────────────────────────
+function scanCodebase(){
+  inject('/explain Analyze the architecture of this codebase. Describe the main components, patterns, and how data flows between them.');
+}
+
+function initAgent(){
+  const m=document.getElementById('model-sel').value;
+  appendSys(`Agent initialized on <code>${m}</code>.<br>
+    Use Aider in terminal: <code>cd C:\\your-project &amp;&amp; aider</code><br>
+    Or chat directly for AI assistance.`);
+  log('INFO','[agent] initialized on '+m);
+  pulseOrb();
+}
+
+// ── LOGS ──────────────────────────────────────────────
+const logColors={INFO:'#60a5fa',WARN:'#fbbf24',ERROR:'#f87171',DEBUG:'#a78bfa'};
+
+function log(level,msg){
+  const body=document.getElementById('log-body');
+  const t=new Date().toTimeString().slice(0,8);
+  const el=document.createElement('div');
+  el.className='log-line';
+  el.innerHTML=`<span class="log-t">${t}</span>
+    <span class="log-l" style="color:${logColors[level]||'#9ca3af'}">${level}</span>
+    <span class="log-m">${msg}</span>`;
+  body.appendChild(el);
+  body.scrollTop=99999;
+}
+
+function clearLogs(){document.getElementById('log-body').innerHTML=''}
+
+// ── INIT ──────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  appendSys('3D interface initialized.<br>Connecting to local stack at <code>localhost:4000</code>...<br>Type a message or use a slash command to begin.');
+  log('INFO','[jarvis] UI loaded');
+  updateFooter();
+  checkAll();
+  setInterval(checkAll,30000);
+});
+</script>
+</body>
+</html>

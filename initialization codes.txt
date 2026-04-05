@@ -1,0 +1,5 @@
+$env:OLLAMA_ORIGINS = "*"
+ollama serve
+
+openclaw gateway
+
